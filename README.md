@@ -29,6 +29,7 @@ undo log是如innodb等数据库保证数据强一致性的核心方法，简单
 volatile作为java中的关键词之一，用以声明变量的值可能随时会别的线程修改，使用volatile修饰的变量会强制将修改的值立即写入主存，主存中值的更新会使缓存中的值失效(非volatile变量不具备这样的特性，非volatile变量的值会被缓存，线程A更新了这个值，线程B读取这个变量的值时可能读到的并不是是线程A更新后的值)。volatile会禁止指令重排。
 
 # 成组提交
+在MYSQL 里面  INNDOB的REDO LOG和MYSQL 的BINLOG 是两个独立体，不像ORACLE是时间上的关系。因为MYSQL 里面可以包含多个存储引擎，每个引擎有自己的独立日志。BINLOG是处于MYSQL的服务层，而REDO LOG 是INNDODB存储引擎层。当一个事务涉及了多个存储引擎的时候，也就是跨了引擎。那么只有BINLOG记录的才是唯一正确的，而INNODB记录的只是事务修改了INNODB引擎的，而该事务修改别的引擎就无法记录了。所以在MYSQL里面一切以BINLOG为主。
 
 # 级联回滚
 
