@@ -44,3 +44,6 @@ volatile作为java中的关键词之一，用以声明变量的值可能随时�
 
 # ThreadLocal
 至于为什么把这个东西又又又单独拉出来说是因为网上的很多文章是有问题和误导性的，故在此重新记录一下。所谓ThreadLocal其实更像是一个变量，让每个线程可以设置和获取值，然后这个操作是线程隔离的。它的核心是*Thread类里的ThreadLocalMap*对象，他会在第一次尝试插入或获取操作时初始化，*故它并不是在ThreadLocal里的东西，而在Thread里*，它是一个哈希表，key是threadLocal实例，value是你要设置的值，但由于key是一个弱引用对象，会在发生GC时直接死掉，而Map里的value又是个强引用对象，所以这就有可能造成内存泄漏（在线程存活时间过长的情况下）。
+
+# linkedBlockingQueue
+当添加元素超过队列最大长度时,add会抛出异常,put会阻塞，offer会直接返回false.当队列为空时,poll返回null,take会被阻塞,remove会抛出异常.
