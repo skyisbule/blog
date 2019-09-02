@@ -53,3 +53,12 @@ volatile作为java中的关键词之一，用以声明变量的值可能随时�
 # jvm的一些优化
 1.逃逸分析2.锁消除3.锁粗化4.栈分配、标量替换5.TLAB      
 这里主要谈一下4和5,所谓栈分配即并非所有对象都分配在堆上，如果我判断一个对象无法逃逸出它的方法，那么我就可以将其分配在栈上，因为它的生命周期即为方法的调用开始到结束，这样便可以大大的减轻gc压力。TLAB则是线程的一小块私有内存，在堆中的EDEN区，大小通常为EDEN的百分之1，对象会被优先分配到TLAB里，这样可以减少并发分配时，内存分配竞争所带来的开销，但坏处是可能会造成内存碎片。
+# cms
+CMS GC要决定是否在full GC时做压缩，会依赖以下几个条件：     
+1.UseCMSCompactAtFullCollection 与 CMSFullGCsBeforeCompaction 是搭配使用的.默认是true，什么时候清理浮动垃圾（压缩整理）取决于后者。       
+2.用户调用了System.gc()，而且DisableExplicitGC没有开启。        
+3.young gen报告接下来如果做增量收集会失败；简单来说也就是young gen预计old gen没有足够空间来容纳下次young GC晋升的对象。      
+上述三种条件的任意一种成立都会让CMS决定这次做full GC时要做压缩。       
+
+CMSFullGCsBeforeCompaction 说的是，在上一次CMS并发GC执行过后，到底还要再执行多少次full GC才会做压缩（默认0）。也就是在默认配置下每次CMS GC顶不住了而要转入full GC的时候都会做压缩。       
+把CMSFullGCsBeforeCompaction配置为n，就会让上面说的第一个条件变成每隔n次真正的full GC才做一次压缩，这会减少full GC压缩的次数，节省了gc时间，也就更容易使CMS的old gen受碎片化问题的困扰。 本来这个参数就是用来配置降低full GC压缩的频率，以期减少某些full GC的暂停时间。CMS回退到full GC时用的算法是mark-sweep-compact，但compaction是可选的，不做的话碎片化会严重些但这次full GC的暂停时间会短些；这是个取舍。
