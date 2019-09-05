@@ -62,3 +62,6 @@ CMS GC要决定是否在full GC时做压缩，会依赖以下几个条件：
 
 CMSFullGCsBeforeCompaction 说的是，在上一次CMS并发GC执行过后，到底还要再执行多少次full GC才会做压缩（默认0）。也就是在默认配置下每次CMS GC顶不住了而要转入full GC的时候都会做压缩。       
 把CMSFullGCsBeforeCompaction配置为n，就会让上面说的第一个条件变成每隔n次真正的full GC才做一次压缩，这会减少full GC压缩的次数，节省了gc时间，也就更容易使CMS的old gen受碎片化问题的困扰。 本来这个参数就是用来配置降低full GC压缩的频率，以期减少某些full GC的暂停时间。CMS回退到full GC时用的算法是mark-sweep-compact，但compaction是可选的，不做的话碎片化会严重些但这次full GC的暂停时间会短些；这是个取舍。
+
+# redlock算法
+分布式锁一般情况下有三种实现方案，数据库主键、redis、zk。这里主要说一下redis，所谓redlock算法简单点说就是客户端同时向redis集群里的每一个节点设置同一个key，和自己生成的v，并设置好过期时间。当超过半数的节点都设置成功后，就代表自己获取了锁，锁的有效时间即为过期时间-获取锁的时间。但它仍然是有问题的，比如客户端挂了，操作不当会引起双写不一致的问题。
